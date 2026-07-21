@@ -76,7 +76,7 @@ const Home = ({ onSiteSelect }) => {
                 <IconWaves className="w-3.5 h-3.5" />
                 Negros Oriental, Philippines
               </div>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight">
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-white">
                 Know before you dive.
               </h1>
               <p className="mt-3 text-base sm:text-lg text-brand-100 max-w-xl">
