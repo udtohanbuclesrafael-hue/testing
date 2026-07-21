@@ -1,0 +1,73 @@
+```
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+.venv.bak/
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.DS_Store
+Thumbs.db
+
+# Database
+seasid.db
+
+# Machine Learning
+*.pkl
+*.model
+*.sav
+*.joblib
+
+# Data files
+*.csv
+*.jsonl
+*.parquet
+*.h5
+*.hdf5
+
+# Frontend
+node_modules/
+dist/
+build/
+.nuxt/
+.next/
+.vuepress/dist
+.output
+.vercel
+.svelte-kit
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Vite
+.vite/
+
+# Environment variables
+.env
+.env.local
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*.tmp
+
+# OS
+.DS_Store
+Thumbs.db
+```
