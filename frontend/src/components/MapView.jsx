@@ -2,69 +2,93 @@ import React from 'react';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { riskColorClasses, riskIcon } from './Icons';
 
 const MapView = ({ sites, forecasts, onSiteClick }) => {
-  const defaultPosition = [9.3, 123.2]; // Negros Oriental center
+  const defaultPosition = [9.25, 123.22];
 
-  const getMarkerColor = (riskClass) => {
-    switch (riskClass) {
-      case 'Go':
-        return '#22c55e';
-      case 'Caution':
-        return '#eab308';
-      case 'No-Go':
-        return '#ef4444';
-      default:
-        return '#9ca3af';
-    }
-  };
-
-  const createCustomIcon = (color) => {
+  const createIcon = (risk) => {
+    const c = riskColorClasses(risk);
     return L.divIcon({
       className: 'custom-marker',
-      html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 3px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-      iconSize: [20, 20],
-      iconAnchor: [10, 10],
+      html: `<div style="
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        background: ${c.dot.replace('bg-', '')};
+        border: 3px solid white;
+        box-shadow: 0 2px 8px rgba(15,23,42,0.25);
+      "></div>`.replace(/bg-go-green/g, '#16a34a')
+        .replace(/bg-caution-yellow/g, '#d97706')
+        .replace(/bg-no-go-red/g, '#dc2626')
+        .replace(/bg-slate-400/g, '#94a3b8'),
+      iconSize: [22, 22],
+      iconAnchor: [11, 11],
     });
   };
 
   return (
-    <MapContainer center={defaultPosition} zoom={10} className="w-full h-96 rounded-lg">
+    <MapContainer
+      center={defaultPosition}
+      zoom={10}
+      style={{ height: '400px', width: '100%' }}
+      scrollWheelZoom={false}
+    >
       <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        attribution='&copy; OpenStreetMap contributors'
       />
       {sites.map((site) => {
         const siteForecast = forecasts.find((f) => f.site_id === site.id);
-        const nextForecast = siteForecast?.forecast?.[0];
-        const riskClass = nextForecast?.risk_class || 'Unknown';
-        const markerColor = getMarkerColor(riskClass);
+        const next = siteForecast;
+        const risk = next?.risk_class || 'Unknown';
+        const Icon = riskIcon(risk);
 
         return (
           <Marker
             key={site.id}
             position={[site.latitude, site.longitude]}
-            icon={createCustomIcon(markerColor)}
-            eventHandlers={{ click: () => onSiteClick(site) }}
+            icon={createIcon(risk)}
+            eventHandlers={{ click: () => onSiteClick?.(site) }}
           >
             <Popup>
-              <div className="text-center">
-                <h3 className="font-bold">{site.name}</h3>
-                {nextForecast ? (
-                  <div>
-                    <div className={`inline-block px-2 py-1 rounded text-sm font-bold mt-1 ${
-                      riskClass === 'Go' ? 'bg-go-green text-white' :
-                      riskClass === 'Caution' ? 'bg-caution-yellow text-white' :
-                      'bg-no-go-red text-white'
-                    }`}>
-                      {riskClass}
-                    </div>
-                    <div className="text-xs mt-1">
-                      {(nextForecast.no_go_probability * 100).toFixed(0)}% no-go
+              <div style={{ minWidth: 160 }}>
+                <div style={{ fontWeight: 700, fontSize: 14, marginBottom: 6 }}>
+                  {site.name}
+                </div>
+                {next ? (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <span
+                      style={{
+                        width: 22,
+                        height: 22,
+                        borderRadius: '50%',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'white',
+                        background:
+                          risk === 'Go'
+                            ? '#16a34a'
+                            : risk === 'Caution'
+                            ? '#d97706'
+                            : risk === 'No-Go'
+                            ? '#dc2626'
+                            : '#94a3b8',
+                      }}
+                    >
+                      <Icon style={{ width: 14, height: 14 }} />
+                    </span>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 13 }}>{risk}</div>
+                      <div style={{ fontSize: 11, color: '#64748b' }}>
+                        {Math.round(next.no_go_probability * 100)}% no-go
+                      </div>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-gray-500 text-sm">No forecast</div>
+                  <div style={{ fontSize: 12, color: '#64748b' }}>
+                    No forecast yet
+                  </div>
                 )}
               </div>
             </Popup>

@@ -1,50 +1,62 @@
 import React from 'react';
+import RiskBadge from './RiskBadge';
+import { IconMapPin, IconArrowRight } from './Icons';
+
+const exposureLabel = (level) => {
+  const map = {
+    sheltered: { label: 'Sheltered', tone: 'bg-slate-100 text-slate-700' },
+    'semi-exposed': { label: 'Semi-exposed', tone: 'bg-amber-100 text-amber-800' },
+    exposed: { label: 'Exposed', tone: 'bg-rose-100 text-rose-800' },
+  };
+  return map[(level || '').toLowerCase()] || { label: level || '—', tone: 'bg-slate-100 text-slate-600' };
+};
 
 const SiteCard = ({ site, forecast, onClick }) => {
-  const nextForecast = forecast && forecast.length > 0 ? forecast[0] : null;
-
-  const getRiskColor = (riskClass) => {
-    switch (riskClass) {
-      case 'Go':
-        return 'border-go-green bg-green-50';
-      case 'Caution':
-        return 'border-caution-yellow bg-yellow-50';
-      case 'No-Go':
-        return 'border-no-go-red bg-red-50';
-      default:
-        return 'border-gray-300 bg-white';
-    }
-  };
+  const nextForecast = forecast?.no_go_probability != null ? forecast : null;
+  const exp = exposureLabel(site.exposure_level);
 
   return (
-    <div
-      className={`p-4 rounded-lg border-2 cursor-pointer hover:shadow-lg transition-shadow ${getRiskColor(nextForecast?.risk_class)}`}
+    <button
+      type="button"
       onClick={onClick}
+      className="card card-hover text-left p-5 flex flex-col gap-3 group w-full"
     >
-      <h3 className="text-xl font-bold mb-2">{site.name}</h3>
-      <p className="text-sm text-gray-600 mb-3">{site.description}</p>
-      
-      {nextForecast ? (
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-xs text-gray-500">Next forecast</div>
-            <div className="font-semibold">
-              {new Date(nextForecast.forecast_time).toLocaleDateString()}{' '}
-              {new Date(nextForecast.forecast_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-            </div>
-          </div>
-          <div className={`px-3 py-1 rounded-full text-sm font-bold ${
-            nextForecast.risk_class === 'Go' ? 'bg-go-green text-white' :
-            nextForecast.risk_class === 'Caution' ? 'bg-caution-yellow text-white' :
-            'bg-no-go-red text-white'
-          }`}>
-            {nextForecast.risk_class}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-lg font-semibold text-slate-900 group-hover:text-brand-700 transition-colors">
+            {site.name}
+          </h3>
+          <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
+            <IconMapPin className="w-3.5 h-3.5" />
+            {site.latitude.toFixed(2)}, {site.longitude.toFixed(2)}
           </div>
         </div>
-      ) : (
-        <div className="text-gray-400 text-sm">No forecast available</div>
+        {nextForecast ? (
+          <RiskBadge
+            riskClass={nextForecast.risk_class}
+            probability={nextForecast.no_go_probability}
+          />
+        ) : (
+          <span className="pill bg-slate-100 text-slate-500 border border-slate-200">
+            No forecast
+          </span>
+        )}
+      </div>
+
+      {site.description && (
+        <p className="text-sm text-slate-600 line-clamp-2">{site.description}</p>
       )}
-    </div>
+
+      <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
+        <span className={`pill ${exp.tone}`}>{exp.label}</span>
+        {nextForecast && (
+          <div className="flex items-center gap-1 text-sm font-medium text-brand-700 group-hover:gap-2 transition-all">
+            View forecast
+            <IconArrowRight className="w-4 h-4" />
+          </div>
+        )}
+      </div>
+    </button>
   );
 };
 

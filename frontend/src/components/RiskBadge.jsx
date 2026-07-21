@@ -1,24 +1,29 @@
 import React from 'react';
+import { riskColorClasses, riskIcon, IconMapPin } from './Icons';
 
-const RiskBadge = ({ riskClass, probability }) => {
-  const getColors = () => {
-    switch (riskClass) {
-      case 'Go':
-        return 'bg-go-green text-white';
-      case 'Caution':
-        return 'bg-caution-yellow text-white';
-      case 'No-Go':
-        return 'bg-no-go-red text-white';
-      default:
-        return 'bg-gray-400 text-white';
-    }
+const RiskBadge = ({ riskClass, probability, size = 'md' }) => {
+  const Icon = riskIcon(riskClass);
+  const c = riskColorClasses(riskClass);
+  const sizeMap = {
+    sm: 'text-xs px-2 py-0.5',
+    md: 'text-sm px-2.5 py-1',
+    lg: 'text-base px-3 py-1.5',
   };
-
   return (
-    <div className={`px-4 py-2 rounded-full font-bold ${getColors()}`}>
-      <div className="text-lg">{riskClass}</div>
-      <div className="text-sm opacity-90">{(probability * 100).toFixed(0)}% no-go</div>
-    </div>
+    <span
+      className={`inline-flex items-center gap-1.5 rounded-full font-semibold border ${sizeMap[size]} ${c.text} ${c.bg} ${c.border}`}
+    >
+      <Icon className={size === 'sm' ? 'w-3 h-3' : 'w-3.5 h-3.5'} />
+      {riskClass || 'Unknown'}
+      {probability != null && (
+        <span className="opacity-75 font-medium">·</span>
+      )}
+      {probability != null && (
+        <span className="opacity-75 font-medium">
+          {Math.round(probability * 100)}%
+        </span>
+      )}
+    </span>
   );
 };
 

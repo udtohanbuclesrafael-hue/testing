@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
   getAdminStatus,
@@ -9,6 +9,15 @@ import {
   runPredictions,
   trainModel,
 } from '../api/client';
+import {
+  IconBrain,
+  IconCloud,
+  IconChart,
+  IconShield,
+  IconCheck,
+  IconAlert,
+  riskColorClasses,
+} from '../components/Icons';
 
 const formatTime = (iso) => {
   if (!iso) return '—';
@@ -78,50 +87,63 @@ const ActionCard = ({
   error,
   success,
   hint,
+  Icon,
 }) => {
   const elapsed = useElapsed(isLoading);
   return (
     <div
-      className={`p-4 bg-white border rounded-lg shadow-sm transition-colors ${
-        isLoading ? 'border-blue-400 ring-2 ring-blue-100' : ''
+      className={`card transition-all ${
+        isLoading ? 'ring-2 ring-brand-300 border-brand-200' : ''
       }`}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="p-5 flex items-start justify-between gap-4">
         <div className="flex-1">
-          <div className="flex items-center gap-2">
-            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold">
-              {step}
-            </span>
-            <div className="font-semibold">{label}</div>
+          <div className="flex items-center gap-3">
+            <div
+              className={`p-2 rounded-lg ${
+                isLoading ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-700'
+              }`}
+            >
+              <Icon className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-slate-900 text-white text-xs font-bold">
+                  {step}
+                </span>
+                <div className="font-semibold text-slate-900">{label}</div>
+              </div>
+            </div>
           </div>
-          <div className="text-sm text-gray-500 mt-1 ml-9">{description}</div>
+          <div className="text-sm text-slate-500 mt-3">{description}</div>
           {hint && !isLoading && !error && !success && (
-            <div className="text-xs text-gray-400 mt-2 ml-9">{hint}</div>
+            <div className="text-xs text-slate-400 mt-2">{hint}</div>
           )}
         </div>
         <button
           type="button"
           onClick={onClick}
           disabled={isLoading}
-          className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-80 disabled:cursor-wait"
+          className="btn-primary shrink-0"
         >
           {isLoading && <Spinner />}
           {isLoading ? `Running… ${formatElapsed(elapsed)}` : 'Run'}
         </button>
       </div>
       {isLoading && (
-        <div className="mt-3 ml-9 text-sm text-blue-700">
+        <div className="px-5 pb-4 -mt-1 text-sm text-brand-700">
           Talking to backend… this can take 10–60 seconds.
         </div>
       )}
       {error && (
-        <div className="mt-3 ml-9 text-sm text-red-700 bg-red-50 p-2 rounded">
+        <div className="mx-5 mb-5 mt-3 text-sm text-red-700 bg-red-50 border border-red-200 p-3 rounded-lg">
           <strong>Error:</strong>{' '}
           {String(error?.response?.data?.detail || error?.message || error)}
         </div>
       )}
       {success && !error && (
-        <div className="mt-3 ml-9 text-sm text-green-800 bg-green-50 p-2 rounded">
+        <div className="mx-5 mb-5 mt-3 text-sm text-green-800 bg-green-50 border border-green-200 p-3 rounded-lg flex items-center gap-2">
+          <IconCheck className="w-4 h-4" />
           {success}
         </div>
       )}
@@ -211,17 +233,27 @@ const Admin = () => {
   const hasPredictions = predictions.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="flex items-center justify-between mb-2">
-        <h1 className="text-3xl font-bold">Admin Operations</h1>
+    <div className="container-page py-8 max-w-5xl">
+      <div className="flex items-start justify-between gap-4 mb-2">
+        <div>
+          <h1 className="text-3xl font-semibold tracking-tight">Admin Operations</h1>
+          <p className="text-sm text-slate-500 mt-1">
+            Trigger model training, weather ingest, and prediction scoring.
+            Results appear on the{' '}
+            <a href="/" className="text-brand-700 underline">
+              Home
+            </a>{' '}
+            page once predictions exist.
+          </p>
+        </div>
         <button
           type="button"
           onClick={() => refetchHealth()}
-          className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm border ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-full text-sm border transition-colors ${
             backendUp
-              ? 'bg-green-50 text-green-800 border-green-200'
-              : 'bg-red-50 text-red-800 border-red-200'
-          } hover:opacity-80`}
+              ? 'bg-green-50 text-green-800 border-green-200 hover:bg-green-100'
+              : 'bg-red-50 text-red-800 border-red-200 hover:bg-red-100'
+          }`}
           data-testid="backend-status"
           title="Click to re-check connection"
         >
@@ -229,7 +261,7 @@ const Admin = () => {
             <Spinner />
           ) : (
             <span
-              className={`inline-block w-2.5 h-2.5 rounded-full ${
+              className={`inline-block w-2 h-2 rounded-full ${
                 backendUp ? 'bg-green-500' : 'bg-red-500'
               } ${anyRunning ? 'animate-pulse' : ''}`}
             />
@@ -242,11 +274,6 @@ const Admin = () => {
           )}
         </button>
       </div>
-      <p className="text-gray-600 mb-6">
-        Trigger model training, weather ingest, and prediction scoring. Results
-        appear on the <a href="/" className="text-blue-600 underline">Home</a>{' '}
-        page after predictions exist.
-      </p>
 
       {!backendUp && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-sm">
@@ -313,32 +340,53 @@ const Admin = () => {
 
       {/* Live status snapshot */}
       {status && (
-        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-2">
-          <div className="p-3 bg-white border rounded text-center">
-            <div className="text-xs text-gray-500">Model</div>
-            <div className={`text-sm font-semibold ${status.model_exists ? 'text-green-700' : 'text-red-700'}`}>
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div className="card p-4">
+            <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+              Model
+            </div>
+            <div
+              className={`mt-1 text-lg font-semibold ${
+                status.model_exists ? 'text-go-green' : 'text-no-go-red'
+              }`}
+            >
               {status.model_exists ? 'Trained' : 'Not trained'}
             </div>
           </div>
-          <div className="p-3 bg-white border rounded text-center">
-            <div className="text-xs text-gray-500">Weather rows</div>
-            <div className="text-sm font-semibold">{status.weather_rows.toLocaleString()}</div>
+          <div className="card p-4">
+            <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+              Weather rows
+            </div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">
+              {status.weather_rows.toLocaleString()}
+            </div>
           </div>
-          <div className="p-3 bg-white border rounded text-center">
-            <div className="text-xs text-gray-500">Predictions</div>
-            <div className="text-sm font-semibold">{status.prediction_rows.toLocaleString()}</div>
+          <div className="card p-4">
+            <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+              Predictions
+            </div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">
+              {status.prediction_rows.toLocaleString()}
+            </div>
           </div>
-          <div className="p-3 bg-white border rounded text-center">
-            <div className="text-xs text-gray-500">Active sites</div>
-            <div className="text-sm font-semibold">{status.active_sites}</div>
+          <div className="card p-4">
+            <div className="text-xs text-slate-500 font-medium uppercase tracking-wider">
+              Active sites
+            </div>
+            <div className="mt-1 text-lg font-semibold tabular-nums">
+              {status.active_sites}
+            </div>
           </div>
         </div>
       )}
 
       {/* Last action banner */}
       {lastRun.message && !anyRunning && (
-        <div className="mb-4 p-3 rounded bg-green-50 border border-green-200 text-sm text-green-800">
-          <strong>Last action ({lastRun.key}):</strong> {lastRun.message}
+        <div className="mb-4 p-3 rounded-lg bg-green-50 border border-green-200 text-sm text-green-800 flex items-center gap-2">
+          <IconCheck className="w-4 h-4" />
+          <span>
+            <strong>Last action ({lastRun.key}):</strong> {lastRun.message}
+          </span>
         </div>
       )}
 
@@ -348,7 +396,8 @@ const Admin = () => {
           step={1}
           label="Train Model"
           description="Generate synthetic data and train the RandomForest model."
-          hint="Takes ~30s. Writes app/ml/model.pkl."
+          hint="Takes ~5–15s. Writes app/ml/model.pkl."
+          Icon={IconBrain}
           onClick={() => trainMut.mutate()}
           isLoading={trainMut.isLoading}
           error={trainMut.error}
@@ -363,6 +412,7 @@ const Admin = () => {
           label="Ingest Weather"
           description="Fetch latest 72h forecasts from Open-Meteo for every active site."
           hint="Takes ~10–30s. Writes weather_forecasts rows."
+          Icon={IconCloud}
           onClick={() => ingestMut.mutate()}
           isLoading={ingestMut.isLoading}
           error={ingestMut.error}
@@ -377,6 +427,7 @@ const Admin = () => {
           label="Run Predictions"
           description="Score the latest weather window and persist Prediction rows."
           hint="Fast (<1s) once weather data exists."
+          Icon={IconChart}
           onClick={() => predictMut.mutate()}
           isLoading={predictMut.isLoading}
           error={predictMut.error}
@@ -389,69 +440,96 @@ const Admin = () => {
       </div>
 
       {/* Latest results */}
-      <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-3">Latest Results</h2>
+      <section className="card overflow-hidden mb-8">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold tracking-tight">Latest Results</h2>
+            <p className="text-sm text-slate-500 mt-0.5">
+              Nearest future prediction per site.
+            </p>
+          </div>
+          {summary.generated_at && (
+            <span className="text-xs text-slate-500">
+              Generated {formatTime(summary.generated_at)}
+            </span>
+          )}
+        </div>
         {hasPredictions ? (
-          <div className="bg-white border rounded-lg overflow-hidden">
-            <div className="grid grid-cols-3 gap-px bg-gray-200 text-center">
-              <div className="bg-green-50 p-4">
+          <div>
+            <div className="grid grid-cols-3 divide-x divide-slate-200 border-b border-slate-200">
+              <div className="bg-go-green-bg p-4 text-center">
                 <div className="text-2xl font-bold text-go-green">{goCount}</div>
-                <div className="text-sm text-gray-600">Go</div>
+                <div className="text-xs uppercase tracking-wider text-slate-600 font-medium mt-1">
+                  Go
+                </div>
               </div>
-              <div className="bg-yellow-50 p-4">
-                <div className="text-2xl font-bold text-caution-yellow">{cautionCount}</div>
-                <div className="text-sm text-gray-600">Caution</div>
+              <div className="bg-caution-yellow-bg p-4 text-center">
+                <div className="text-2xl font-bold text-caution-yellow">
+                  {cautionCount}
+                </div>
+                <div className="text-xs uppercase tracking-wider text-slate-600 font-medium mt-1">
+                  Caution
+                </div>
               </div>
-              <div className="bg-red-50 p-4">
+              <div className="bg-no-go-red-bg p-4 text-center">
                 <div className="text-2xl font-bold text-no-go-red">{noGoCount}</div>
-                <div className="text-sm text-gray-600">No-Go</div>
+                <div className="text-xs uppercase tracking-wider text-slate-600 font-medium mt-1">
+                  No-Go
+                </div>
               </div>
             </div>
-            <table className="min-w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-4 py-2 text-left">Site</th>
-                  <th className="px-4 py-2 text-left">Risk</th>
-                  <th className="px-4 py-2 text-right">No-Go Prob.</th>
-                  <th className="px-4 py-2 text-left">Forecast Time</th>
-                </tr>
-              </thead>
-              <tbody>
-                {predictions.map((p) => (
-                  <tr key={p.site_id} className="border-t">
-                    <td className="px-4 py-2 font-medium">{p.site_name}</td>
-                    <td className="px-4 py-2">
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-bold text-white ${
-                          p.risk_class === 'Go'
-                            ? 'bg-go-green'
-                            : p.risk_class === 'Caution'
-                            ? 'bg-caution-yellow'
-                            : 'bg-no-go-red'
-                        }`}
-                      >
-                        {p.risk_class}
-                      </span>
-                    </td>
-                    <td className="px-4 py-2 text-right">
-                      {(p.no_go_probability * 100).toFixed(0)}%
-                    </td>
-                    <td className="px-4 py-2">{formatTime(p.forecast_time)}</td>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-slate-50">
+                  <tr className="text-left text-xs uppercase tracking-wider text-slate-500">
+                    <th className="px-5 py-3 font-medium">Site</th>
+                    <th className="px-5 py-3 font-medium">Risk</th>
+                    <th className="px-5 py-3 font-medium text-right">
+                      No-Go Prob.
+                    </th>
+                    <th className="px-5 py-3 font-medium">Forecast Time</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="px-4 py-2 text-xs text-gray-500 border-t">
-              Generated at {formatTime(summary.generated_at)} · {sites.length} active sites
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {predictions.map((p) => {
+                    const c = riskColorClasses(p.risk_class);
+                    return (
+                      <tr key={p.site_id} className="hover:bg-slate-50">
+                        <td className="px-5 py-3 font-medium text-slate-900">
+                          {p.site_name}
+                        </td>
+                        <td className="px-5 py-3">
+                          <span className={`pill ${c.bg} ${c.text} border ${c.border}`}>
+                            <span className={`risk-dot ${c.dot}`} />
+                            {p.risk_class}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 text-right tabular-nums">
+                          {Math.round(p.no_go_probability * 100)}%
+                        </td>
+                        <td className="px-5 py-3 text-slate-600">
+                          {formatTime(p.forecast_time)}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
         ) : (
-          <div className="bg-yellow-50 border border-yellow-200 p-4 rounded text-sm text-yellow-800">
-            No predictions yet. Run <strong>Train Model</strong> →{' '}
-            <strong>Ingest Weather</strong> → <strong>Run Predictions</strong> above.
+          <div className="px-6 py-12 text-center">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-amber-100 text-amber-700 mb-3">
+              <IconAlert className="w-6 h-6" />
+            </div>
+            <div className="text-slate-700 font-medium">No predictions yet</div>
+            <div className="text-sm text-slate-500 mt-1">
+              Run <strong>Train Model</strong> → <strong>Ingest Weather</strong> →{' '}
+              <strong>Run Predictions</strong> above.
+            </div>
           </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };
