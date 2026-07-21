@@ -138,9 +138,15 @@ environment / `.env`:
 | `OPEN_METEO_MARINE_URL`   | `https://marine-api.open-meteo.com/v1/marine` |
 | `CORS_ALLOW_ORIGINS`      | (CSV; dev defaults: localhost)   |
 
-> The seed site coordinates are currently on land; Open-Meteo's marine API
-> rejects them with `HTTP 400`. For real deployments, snap coordinates to the
-> nearest marine point or supply your own site records.
+> The seed site coordinates sit on the coast of Negros Oriental and Open-Meteo's
+> marine API rejects some swell fields for certain regions (this is an upstream
+> bug — even the API's own docs example currently returns `HTTP 400` when any
+> `swell_*` parameter is included). The ingest pipeline now fetches marine
+> fields individually and stores `null` for the failing ones, so predictions
+> still run on whatever data is available (wind, rain, pressure, temperature,
+> wave height, sea-surface temperature). Swell-driven signals will return when
+> the upstream API is fixed; in the meantime you can supply real swell data
+> via a different source.
 
 ## License
 

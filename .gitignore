@@ -21,6 +21,8 @@ coverage.xml
 .DS_Store
 Thumbs.db
 
+screenshots
+
 # Database
 seasid.db
 
