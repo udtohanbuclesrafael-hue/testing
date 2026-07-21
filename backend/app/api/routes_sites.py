@@ -11,7 +11,7 @@ router = APIRouter()
 @router.get("/sites", response_model=List[SiteSchema])
 def list_sites(skip: int = 0, limit: int = 100, db: Session = Depends(get_db)):
     """Get all active dive sites."""
-    sites = db.query(Site).filter(Site.active == True).offset(skip).limit(limit).all()
+    sites = db.query(Site).filter(Site.active.is_(True)).offset(skip).limit(limit).all()
     return sites
 
 

@@ -4,12 +4,9 @@ from datetime import datetime, timedelta
 import pickle
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import classification_report, roc_auc_score, brier_score_loss
-from sqlalchemy.ext.declarative import declarative_base
 from ..core.database import SessionLocal, engine
 from ..models.site import Site, WeatherForecast, Prediction, ModelRegistry
 from ..core.config import settings
-
-Base = declarative_base()
 
 
 def generate_synthetic_data():

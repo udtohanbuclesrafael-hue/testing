@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing import Optional, List
 from datetime import datetime
 
@@ -18,9 +18,7 @@ class SiteCreate(SiteBase):
 
 class Site(SiteBase):
     id: int
-    
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class WeatherForecastBase(BaseModel):
@@ -40,9 +38,7 @@ class WeatherForecastBase(BaseModel):
 class WeatherForecast(WeatherForecastBase):
     id: int
     site_id: int
-    
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class PredictionBase(BaseModel):
@@ -51,14 +47,15 @@ class PredictionBase(BaseModel):
     risk_class: str
     top_reasons: Optional[str] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 class Prediction(PredictionBase):
     id: int
     site_id: int
     model_version: str
-    
-    class Config:
-        from_attributes = True
+
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
 
 
 class ForecastResponse(BaseModel):

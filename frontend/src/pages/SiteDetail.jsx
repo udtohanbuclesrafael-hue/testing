@@ -81,7 +81,7 @@ const SiteDetail = () => {
               </tr>
             </thead>
             <tbody>
-              {forecast.slice(0, 24).map((item, index) => (
+              {forecast.slice(0, 72).map((item, index) => (
                 <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                   <td className="px-4 py-2 border">
                     {new Date(item.forecast_time).toLocaleString()}
@@ -99,7 +99,7 @@ const SiteDetail = () => {
                     {(item.no_go_probability * 100).toFixed(0)}%
                   </td>
                   <td className="px-4 py-2 border text-sm">
-                    {item.reasons || 'N/A'}
+                    {item.top_reasons || 'N/A'}
                   </td>
                 </tr>
               ))}
