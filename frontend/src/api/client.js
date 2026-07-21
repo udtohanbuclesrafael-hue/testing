@@ -14,3 +14,8 @@ export const getSiteById = (siteId) => api.get(`/sites/${siteId}`);
 export const getSiteForecast = (siteId) => api.get(`/sites/${siteId}/forecast`);
 export const getRegionalSummary = () => api.get('/forecast/summary');
 export const submitFeedback = (feedbackData) => api.post('/feedback', feedbackData);
+
+export const trainModel = () => api.post('/ml/train');
+export const ingestWeather = () => api.post('/ingest/weather');
+export const runPredictions = (siteId) =>
+  api.post('/predict/run', siteId != null ? { site_id: siteId } : {});

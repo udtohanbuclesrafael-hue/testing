@@ -3,6 +3,7 @@ import { Routes, Route, Link, useNavigate } from 'react-router-dom';
 import Home from './pages/Home';
 import SiteDetail from './pages/SiteDetail';
 import About from './pages/About';
+import Admin from './pages/Admin';
 
 const App = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const App = () => {
             <Link to="/" className="text-gray-700 hover:text-blue-700">
               Home
             </Link>
+            <Link to="/admin" className="text-gray-700 hover:text-blue-700">
+              Admin
+            </Link>
             <Link to="/about" className="text-gray-700 hover:text-blue-700">
               About
             </Link>
@@ -34,6 +38,7 @@ const App = () => {
       <Routes>
         <Route path="/" element={<Home onSiteSelect={handleSiteSelect} />} />
         <Route path="/sites/:siteId" element={<SiteDetail />} />
+        <Route path="/admin" element={<Admin />} />
         <Route path="/about" element={<About />} />
       </Routes>
     </div>
