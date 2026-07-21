@@ -134,18 +134,23 @@ const Admin = () => {
   const [lastRun, setLastRun] = useState({});
 
   // Health (re-polls every 5s)
-  const { data: healthData, isError: healthError } = useQuery(
-    'health',
-    getHealth,
-    { refetchInterval: 5000, retry: false }
-  );
+  const {
+    data: healthData,
+    isError: healthError,
+    error: healthErrorObj,
+    refetch: refetchHealth,
+    isFetching: healthFetching,
+  } = useQuery('health', getHealth, {
+    refetchInterval: 5000,
+    retry: false,
+  });
   const backendUp = !healthError && !!healthData;
 
   // Admin status snapshot (re-fetches after each action)
   const { data: statusData, refetch: refetchStatus } = useQuery(
     'adminStatus',
     getAdminStatus,
-    { refetchInterval: 10000 }
+    { refetchInterval: 10000, retry: false }
   );
 
   // Regional summary
@@ -209,32 +214,102 @@ const Admin = () => {
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="flex items-center justify-between mb-2">
         <h1 className="text-3xl font-bold">Admin Operations</h1>
-        <div
-          className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+        <button
+          type="button"
+          onClick={() => refetchHealth()}
+          className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm border ${
             backendUp
-              ? 'bg-green-50 text-green-800 border border-green-200'
-              : 'bg-red-50 text-red-800 border border-red-200'
-          }`}
+              ? 'bg-green-50 text-green-800 border-green-200'
+              : 'bg-red-50 text-red-800 border-red-200'
+          } hover:opacity-80`}
           data-testid="backend-status"
+          title="Click to re-check connection"
         >
-          <span
-            className={`inline-block w-2.5 h-2.5 rounded-full ${
-              backendUp ? 'bg-green-500' : 'bg-red-500'
-            } ${anyRunning ? 'animate-pulse' : ''}`}
-          />
+          {healthFetching ? (
+            <Spinner />
+          ) : (
+            <span
+              className={`inline-block w-2.5 h-2.5 rounded-full ${
+                backendUp ? 'bg-green-500' : 'bg-red-500'
+              } ${anyRunning ? 'animate-pulse' : ''}`}
+            />
+          )}
           <span className="font-medium">
             {backendUp ? 'Backend connected' : 'Backend unreachable'}
           </span>
           {healthData?.data?.version && (
             <span className="text-xs opacity-70">v{healthData.data.version}</span>
           )}
-        </div>
+        </button>
       </div>
       <p className="text-gray-600 mb-6">
         Trigger model training, weather ingest, and prediction scoring. Results
         appear on the <a href="/" className="text-blue-600 underline">Home</a>{' '}
         page after predictions exist.
       </p>
+
+      {!backendUp && (
+        <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded text-sm">
+          <div className="font-semibold text-red-800 mb-2">
+            Cannot reach the backend API.
+          </div>
+          {healthErrorObj && (
+            <div className="text-red-700 mb-3 font-mono text-xs break-all">
+              {healthErrorObj?.message || String(healthErrorObj)}
+              {healthErrorObj?.response?.status
+                ? ` (HTTP ${healthErrorObj.response.status})`
+                : ''}
+            </div>
+          )}
+          <div className="text-gray-800 mb-2">Things to check:</div>
+          <ol className="list-decimal list-inside space-y-1 text-gray-700">
+            <li>
+              The FastAPI process is running on port{' '}
+              <code className="bg-gray-100 px-1 rounded">8000</code> in the same
+              machine as Vite.
+            </li>
+            <li>
+              Start it with:{' '}
+              <code className="bg-gray-100 px-1 rounded">
+                cd backend &amp;&amp; uvicorn app.main:app --host 0.0.0.0 --port 8000
+              </code>
+            </li>
+            <li>
+              Sanity check from a new terminal:{' '}
+              <code className="bg-gray-100 px-1 rounded">
+                curl http://localhost:8000/health
+              </code>{' '}
+              should return{' '}
+              <code className="bg-gray-100 px-1 rounded">
+                {'{"status":"healthy",...}'}
+              </code>
+              .
+            </li>
+            <li>
+              In <strong>Google Cloud Shell</strong>: also expose port{' '}
+              <code className="bg-gray-100 px-1 rounded">8000</code> via the Web
+              Preview pane so the browser can reach it through the proxy (Vite's
+              dev proxy on <code className="bg-gray-100 px-1 rounded">5173</code>{' '}
+              forwards <code className="bg-gray-100 px-1 rounded">/api</code> to
+              the backend's <code className="bg-gray-100 px-1 rounded">localhost:8000</code>{' '}
+              inside the shell, which only works if the backend is bound to{' '}
+              <code className="bg-gray-100 px-1 rounded">0.0.0.0</code>).
+            </li>
+            <li>
+              If you're hitting the API directly (not through Vite), set{' '}
+              <code className="bg-gray-100 px-1 rounded">CORS_ALLOW_ORIGINS</code>{' '}
+              to your full frontend origin.
+            </li>
+          </ol>
+          <button
+            type="button"
+            onClick={() => refetchHealth()}
+            className="mt-3 px-3 py-1 bg-red-600 text-white rounded text-sm hover:bg-red-700"
+          >
+            Retry connection
+          </button>
+        </div>
+      )}
 
       {/* Live status snapshot */}
       {status && (

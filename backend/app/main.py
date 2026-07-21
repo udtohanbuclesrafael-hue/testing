@@ -1,4 +1,6 @@
 import os
+import re
+import socket
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -49,14 +51,32 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS: allow the Vite dev server by default; override via env in production.
-_default_origins = ["http://localhost:5173", "http://localhost:4173"]
+# CORS configuration.
+# - Dev defaults: localhost ports and Google Cloud Shell's `*.cloudshell.dev`
+#   proxy URLs. Production should override via CORS_ALLOW_ORIGINS.
+# - We use allow_origin_regex to cover *.cloudshell.dev without enumerating
+#   every ephemeral port-prefixed subdomain.
+_dev_origins = [
+    "http://localhost:5173",
+    "http://localhost:4173",
+    "http://127.0.0.1:5173",
+    "http://127.0.0.1:4173",
+]
 _extra_origins = [o.strip() for o in os.getenv("CORS_ALLOW_ORIGINS", "").split(",") if o.strip()]
-allow_origins = _default_origins + _extra_origins
+_extra_regex = os.getenv("CORS_ALLOW_ORIGIN_REGEX", "").strip()
+
+_origin_regexes = [
+    # Google Cloud Shell: https://<port>-cs-<hash>.<region>.cloudshell.dev
+    # (region can be e.g. "cs-asia-east1-duck"; we accept any subdomain chain).
+    r"^https://.+\.cloudshell\.dev$",
+]
+if _extra_regex:
+    _origin_regexes.append(_extra_regex)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
+    allow_origins=_dev_origins + _extra_origins,
+    allow_origin_regex="|".join(_origin_regexes),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -73,6 +93,26 @@ def health_check():
     return {"status": "healthy", "version": settings.VERSION}
 
 
+def _print_startup_banner(host: str, port: int) -> None:
+    """Print the URLs the backend is reachable at."""
+    print("\n" + "=" * 60)
+    print(f"  SeaSID backend v{settings.VERSION}")
+    print(f"  Listening on http://{host}:{port}")
+    if host in ("0.0.0.0", ""):
+        try:
+            local_ip = socket.gethostbyname(socket.gethostname())
+            print(f"  LAN:         http://{local_ip}:{port}")
+        except Exception:
+            pass
+    print(f"  Docs:        http://{host}:{port}/docs")
+    print(f"  Health:      http://{host}:{port}/health")
+    print(f"  API base:    http://{host}:{port}{settings.API_V1_STR}")
+    print("=" * 60 + "\n")
+
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", "8000"))
+    _print_startup_banner(host, port)
+    uvicorn.run("app.main:app", host=host, port=port, reload=False)
