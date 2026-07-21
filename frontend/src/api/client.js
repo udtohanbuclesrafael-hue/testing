@@ -19,3 +19,5 @@ export const trainModel = () => api.post('/ml/train');
 export const ingestWeather = () => api.post('/ingest/weather');
 export const runPredictions = (siteId) =>
   api.post('/predict/run', siteId != null ? { site_id: siteId } : {});
+export const getAdminStatus = () => api.get('/status');
+export const getHealth = () => api.get('/health');

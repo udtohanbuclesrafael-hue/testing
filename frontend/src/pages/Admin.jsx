@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
+  getAdminStatus,
+  getHealth,
   getRegionalSummary,
   getSites,
   ingestWeather,
@@ -17,77 +19,186 @@ const formatTime = (iso) => {
   }
 };
 
-const ActionButton = ({ label, description, onClick, isLoading, error, success }) => (
-  <div className="p-4 bg-white border rounded-lg shadow-sm flex flex-col gap-2">
-    <div className="flex items-center justify-between">
-      <div>
-        <div className="font-semibold">{label}</div>
-        <div className="text-sm text-gray-500">{description}</div>
-      </div>
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={isLoading}
-        className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-      >
-        {isLoading ? 'Running…' : 'Run'}
-      </button>
-    </div>
-    {error && (
-      <div className="text-sm text-red-700 bg-red-50 p-2 rounded">
-        {String(error?.response?.data?.detail || error?.message || error)}
-      </div>
-    )}
-    {success && !error && (
-      <div className="text-sm text-green-700 bg-green-50 p-2 rounded">
-        {success}
-      </div>
-    )}
-  </div>
+const formatElapsed = (seconds) => {
+  if (seconds < 60) return `${seconds.toFixed(1)}s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.floor(seconds % 60);
+  return `${m}m ${s}s`;
+};
+
+const Spinner = () => (
+  <svg
+    className="animate-spin h-4 w-4 text-white"
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+  >
+    <circle
+      className="opacity-25"
+      cx="12"
+      cy="12"
+      r="10"
+      stroke="currentColor"
+      strokeWidth="4"
+    />
+    <path
+      className="opacity-75"
+      fill="currentColor"
+      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+    />
+  </svg>
 );
+
+const useElapsed = (running) => {
+  const [elapsed, setElapsed] = useState(0);
+  const startedAt = useRef(null);
+  useEffect(() => {
+    if (running) {
+      startedAt.current = Date.now();
+      setElapsed(0);
+      const id = setInterval(() => {
+        if (startedAt.current) {
+          setElapsed((Date.now() - startedAt.current) / 1000);
+        }
+      }, 100);
+      return () => clearInterval(id);
+    }
+    startedAt.current = null;
+    return undefined;
+  }, [running]);
+  return elapsed;
+};
+
+const ActionCard = ({
+  step,
+  label,
+  description,
+  onClick,
+  isLoading,
+  error,
+  success,
+  hint,
+}) => {
+  const elapsed = useElapsed(isLoading);
+  return (
+    <div
+      className={`p-4 bg-white border rounded-lg shadow-sm transition-colors ${
+        isLoading ? 'border-blue-400 ring-2 ring-blue-100' : ''
+      }`}
+    >
+      <div className="flex items-start justify-between gap-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center justify-center w-7 h-7 rounded-full bg-blue-600 text-white text-sm font-bold">
+              {step}
+            </span>
+            <div className="font-semibold">{label}</div>
+          </div>
+          <div className="text-sm text-gray-500 mt-1 ml-9">{description}</div>
+          {hint && !isLoading && !error && !success && (
+            <div className="text-xs text-gray-400 mt-2 ml-9">{hint}</div>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onClick}
+          disabled={isLoading}
+          className="shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-80 disabled:cursor-wait"
+        >
+          {isLoading && <Spinner />}
+          {isLoading ? `Running… ${formatElapsed(elapsed)}` : 'Run'}
+        </button>
+      </div>
+      {isLoading && (
+        <div className="mt-3 ml-9 text-sm text-blue-700">
+          Talking to backend… this can take 10–60 seconds.
+        </div>
+      )}
+      {error && (
+        <div className="mt-3 ml-9 text-sm text-red-700 bg-red-50 p-2 rounded">
+          <strong>Error:</strong>{' '}
+          {String(error?.response?.data?.detail || error?.message || error)}
+        </div>
+      )}
+      {success && !error && (
+        <div className="mt-3 ml-9 text-sm text-green-800 bg-green-50 p-2 rounded">
+          {success}
+        </div>
+      )}
+    </div>
+  );
+};
 
 const Admin = () => {
   const queryClient = useQueryClient();
-  const [poll, setPoll] = useState(false);
+  const [lastRun, setLastRun] = useState({});
 
-  // Queries
-  const { data: sitesData } = useQuery('sites', getSites);
+  // Health (re-polls every 5s)
+  const { data: healthData, isError: healthError } = useQuery(
+    'health',
+    getHealth,
+    { refetchInterval: 5000, retry: false }
+  );
+  const backendUp = !healthError && !!healthData;
+
+  // Admin status snapshot (re-fetches after each action)
+  const { data: statusData, refetch: refetchStatus } = useQuery(
+    'adminStatus',
+    getAdminStatus,
+    { refetchInterval: 10000 }
+  );
+
+  // Regional summary
   const { data: summaryData, refetch: refetchSummary } = useQuery(
     'regionalSummary',
-    getRegionalSummary,
-    { refetchInterval: poll ? 4000 : false }
+    getRegionalSummary
   );
+  const { data: sitesData } = useQuery('sites', getSites);
 
   const sites = sitesData?.data || [];
   const summary = summaryData?.data || { sites: [] };
   const predictions = summary.sites || [];
+  const status = statusData?.data;
 
-  // Mutations
+  const handleSuccess = (key, message) => {
+    setLastRun({ key, message, at: Date.now() });
+    refetchStatus();
+    refetchSummary();
+    queryClient.invalidateQueries('regionalSummary');
+    queryClient.invalidateQueries('adminStatus');
+  };
+
   const trainMut = useMutation(trainModel, {
-    onSuccess: () => {
-      queryClient.invalidateQueries('regionalSummary');
-    },
-  });
-  const ingestMut = useMutation(ingestWeather, {
-    onSuccess: () => {
-      setPoll(true);
-      // Give the background ingest ~10s, then stop polling
-      setTimeout(() => setPoll(false), 60000);
-    },
-  });
-  const predictMut = useMutation(() => runPredictions(null), {
-    onSuccess: () => {
-      queryClient.invalidateQueries('regionalSummary');
-      refetchSummary();
+    onSuccess: (res) => {
+      const d = res?.data || {};
+      handleSuccess(
+        'train',
+        `Model trained on ${d.training_rows?.toLocaleString()} rows in ${d.elapsed_seconds}s.`
+      );
     },
   });
 
-  const status = (() => {
-    if (trainMut.isLoading) return { kind: 'running', text: 'Training model…' };
-    if (ingestMut.isLoading) return { kind: 'running', text: 'Ingesting weather from Open-Meteo…' };
-    if (predictMut.isLoading) return { kind: 'running', text: 'Scoring predictions…' };
-    return { kind: 'idle', text: 'Idle' };
-  })();
+  const ingestMut = useMutation(ingestWeather, {
+    onSuccess: (res) => {
+      const d = res?.data || {};
+      handleSuccess(
+        'ingest',
+        `Ingested ${d.total_rows} weather rows across ${d.sites_ingested} sites.`
+      );
+    },
+  });
+
+  const predictMut = useMutation(() => runPredictions(null), {
+    onSuccess: (res) => {
+      const d = res?.data || {};
+      handleSuccess(
+        'predict',
+        `Wrote ${d.predictions_written} prediction rows.`
+      );
+    },
+  });
+
+  const anyRunning = trainMut.isLoading || ingestMut.isLoading || predictMut.isLoading;
 
   const goCount = predictions.filter((p) => p.risk_class === 'Go').length;
   const cautionCount = predictions.filter((p) => p.risk_class === 'Caution').length;
@@ -96,62 +207,113 @@ const Admin = () => {
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <h1 className="text-3xl font-bold mb-2">Admin Operations</h1>
+      <div className="flex items-center justify-between mb-2">
+        <h1 className="text-3xl font-bold">Admin Operations</h1>
+        <div
+          className={`flex items-center gap-2 px-3 py-1 rounded-full text-sm ${
+            backendUp
+              ? 'bg-green-50 text-green-800 border border-green-200'
+              : 'bg-red-50 text-red-800 border border-red-200'
+          }`}
+          data-testid="backend-status"
+        >
+          <span
+            className={`inline-block w-2.5 h-2.5 rounded-full ${
+              backendUp ? 'bg-green-500' : 'bg-red-500'
+            } ${anyRunning ? 'animate-pulse' : ''}`}
+          />
+          <span className="font-medium">
+            {backendUp ? 'Backend connected' : 'Backend unreachable'}
+          </span>
+          {healthData?.data?.version && (
+            <span className="text-xs opacity-70">v{healthData.data.version}</span>
+          )}
+        </div>
+      </div>
       <p className="text-gray-600 mb-6">
         Trigger model training, weather ingest, and prediction scoring. Results
-        appear on the <a href="/" className="text-blue-600 underline">Home</a> page
-        after predictions exist.
+        appear on the <a href="/" className="text-blue-600 underline">Home</a>{' '}
+        page after predictions exist.
       </p>
 
-      {/* Status banner */}
-      <div
-        className={`mb-6 p-3 rounded text-sm ${
-          status.kind === 'running'
-            ? 'bg-blue-50 text-blue-800'
-            : hasPredictions
-            ? 'bg-green-50 text-green-800'
-            : 'bg-yellow-50 text-yellow-800'
-        }`}
-      >
-        <strong>Status:</strong> {status.text}
-        {hasPredictions && (
-          <> · {predictions.length} active site predictions</>
-        )}
-      </div>
+      {/* Live status snapshot */}
+      {status && (
+        <div className="mb-6 grid grid-cols-2 md:grid-cols-4 gap-2">
+          <div className="p-3 bg-white border rounded text-center">
+            <div className="text-xs text-gray-500">Model</div>
+            <div className={`text-sm font-semibold ${status.model_exists ? 'text-green-700' : 'text-red-700'}`}>
+              {status.model_exists ? 'Trained' : 'Not trained'}
+            </div>
+          </div>
+          <div className="p-3 bg-white border rounded text-center">
+            <div className="text-xs text-gray-500">Weather rows</div>
+            <div className="text-sm font-semibold">{status.weather_rows.toLocaleString()}</div>
+          </div>
+          <div className="p-3 bg-white border rounded text-center">
+            <div className="text-xs text-gray-500">Predictions</div>
+            <div className="text-sm font-semibold">{status.prediction_rows.toLocaleString()}</div>
+          </div>
+          <div className="p-3 bg-white border rounded text-center">
+            <div className="text-xs text-gray-500">Active sites</div>
+            <div className="text-sm font-semibold">{status.active_sites}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Last action banner */}
+      {lastRun.message && !anyRunning && (
+        <div className="mb-4 p-3 rounded bg-green-50 border border-green-200 text-sm text-green-800">
+          <strong>Last action ({lastRun.key}):</strong> {lastRun.message}
+        </div>
+      )}
 
       {/* Action cards */}
       <div className="grid gap-4 mb-8">
-        <ActionButton
-          label="1. Train Model"
-          description="Generate synthetic data and train the RandomForest model (background)."
+        <ActionCard
+          step={1}
+          label="Train Model"
+          description="Generate synthetic data and train the RandomForest model."
+          hint="Takes ~30s. Writes app/ml/model.pkl."
           onClick={() => trainMut.mutate()}
           isLoading={trainMut.isLoading}
           error={trainMut.error}
-          success={trainMut.data?.data?.status}
+          success={
+            trainMut.data?.data
+              ? `Done in ${trainMut.data.data.elapsed_seconds}s · ${trainMut.data.data.training_rows.toLocaleString()} rows · model.pkl ${trainMut.data.data.model_exists ? 'saved' : 'MISSING'}`
+              : null
+          }
         />
-        <ActionButton
-          label="2. Ingest Weather"
+        <ActionCard
+          step={2}
+          label="Ingest Weather"
           description="Fetch latest 72h forecasts from Open-Meteo for every active site."
+          hint="Takes ~10–30s. Writes weather_forecasts rows."
           onClick={() => ingestMut.mutate()}
           isLoading={ingestMut.isLoading}
           error={ingestMut.error}
-          success={ingestMut.data?.data?.status}
+          success={
+            ingestMut.data?.data
+              ? `Done · ${ingestMut.data.data.total_rows} rows across ${ingestMut.data.data.sites_ingested} sites`
+              : null
+          }
         />
-        <ActionButton
-          label="3. Run Predictions"
+        <ActionCard
+          step={3}
+          label="Run Predictions"
           description="Score the latest weather window and persist Prediction rows."
+          hint="Fast (<1s) once weather data exists."
           onClick={() => predictMut.mutate()}
           isLoading={predictMut.isLoading}
           error={predictMut.error}
           success={
             predictMut.data?.data
-              ? `${predictMut.data.data.status} (${predictMut.data.data.predictions_written} rows)`
+              ? `Done · ${predictMut.data.data.predictions_written} prediction rows written`
               : null
           }
         />
       </div>
 
-      {/* Live results */}
+      {/* Latest results */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-3">Latest Results</h2>
         {hasPredictions ? (
