@@ -7,7 +7,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        brand: {
+        navy: {
+          50:  '#f0f4f8',
+          100: '#d9e2ec',
+          200: '#bcccdc',
+          300: '#9fb3c8',
+          400: '#829ab1',
+          500: '#627d98',
+          600: '#486581',
+          700: '#334e68',
+          800: '#243b53',
+          900: '#102a43',
+        },
+        sea: {
           50:  '#f0f9ff',
           100: '#e0f2fe',
           200: '#bae6fd',
@@ -18,9 +30,8 @@ export default {
           700: '#0369a1',
           800: '#075985',
           900: '#0c4a6e',
-          950: '#082f49',
         },
-        'go-green':    '#16a34a',
+        'go-green':    '#059669',
         'go-green-bg': '#f0fdf4',
         'caution-yellow':    '#d97706',
         'caution-yellow-bg': '#fffbeb',
@@ -31,8 +42,8 @@ export default {
         sans: ['Inter', 'system-ui', '-apple-system', 'Segoe UI', 'Roboto', 'sans-serif'],
       },
       boxShadow: {
-        'card': '0 1px 3px rgba(15,23,42,.06), 0 1px 2px rgba(15,23,42,.04)',
-        'card-hover': '0 10px 25px -5px rgba(15,23,42,.10), 0 8px 10px -6px rgba(15,23,42,.05)',
+        'card': '0 1px 2px rgba(0,0,0,0.05)',
+        'card-hover': '0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06)',
       },
     },
   },

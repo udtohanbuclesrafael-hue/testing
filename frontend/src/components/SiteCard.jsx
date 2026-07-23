@@ -23,7 +23,7 @@ const SiteCard = ({ site, forecast, onClick }) => {
     >
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 group-hover:text-brand-700 transition-colors">
+          <h3 className="text-lg font-semibold text-slate-900 group-hover:text-navy-700 transition-colors">
             {site.name}
           </h3>
           <div className="flex items-center gap-1 text-xs text-slate-500 mt-1">
@@ -50,7 +50,7 @@ const SiteCard = ({ site, forecast, onClick }) => {
       <div className="flex items-center justify-between mt-auto pt-2 border-t border-slate-100">
         <span className={`pill ${exp.tone}`}>{exp.label}</span>
         {nextForecast && (
-          <div className="flex items-center gap-1 text-sm font-medium text-brand-700 group-hover:gap-2 transition-all">
+          <div className="flex items-center gap-1 text-sm font-medium text-navy-700 group-hover:gap-2 transition-all">
             View forecast
             <IconArrowRight className="w-4 h-4" />
           </div>

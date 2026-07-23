@@ -14,7 +14,7 @@ import {
 
 const StatTile = ({ count, label, Icon, colorClasses }) => (
   <div
-    className={`card p-5 ${colorClasses.border} border ${colorClasses.bg} transition-shadow hover:shadow-card-hover`}
+    className={`card p-5 ${colorClasses.border} border ${colorClasses.bg}`}
   >
     <div className="flex items-start justify-between">
       <div>
@@ -22,7 +22,7 @@ const StatTile = ({ count, label, Icon, colorClasses }) => (
         <div className="text-sm font-medium text-slate-600 mt-1">{label}</div>
       </div>
       <div
-        className={`p-2 rounded-lg ${colorClasses.text} bg-white/70 ring-1 ${colorClasses.ring}`}
+        className={`p-2 rounded-md ${colorClasses.text} bg-white ring-1 ${colorClasses.ring}`}
       >
         <Icon className="w-5 h-5" />
       </div>
@@ -53,41 +53,26 @@ const Home = ({ onSiteSelect }) => {
   return (
     <div>
       {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 text-white">
-        <div
-          className="absolute inset-0 opacity-20 pointer-events-none"
-          aria-hidden
-        >
-          <svg viewBox="0 0 800 200" className="w-full h-full" preserveAspectRatio="none">
-            <path
-              d="M0 100 Q100 60 200 100 T400 100 T600 100 T800 100 L800 200 L0 200 Z"
-              fill="rgba(255,255,255,0.05)"
-            />
-            <path
-              d="M0 140 Q100 110 200 140 T400 140 T600 140 T800 140 L800 200 L0 200 Z"
-              fill="rgba(255,255,255,0.04)"
-            />
-          </svg>
-        </div>
+      <section className="relative overflow-hidden bg-navy-800 text-white">
         <div className="container-page relative py-12 sm:py-16">
           <div className="flex items-start justify-between flex-wrap gap-6">
             <div className="max-w-2xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 text-xs font-medium mb-4">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-white/10 border border-white/20 text-xs font-medium mb-4">
                 <IconWaves className="w-3.5 h-3.5" />
                 Negros Oriental, Philippines
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight text-white">
-                Know before you dive.
+                Diveability Forecast
               </h1>
-              <p className="mt-3 text-base sm:text-lg text-brand-100 max-w-xl">
-                Hyperlocal 72-hour diveability forecasts for the top sites in
-                Negros Oriental. AI-assisted risk scoring so operators, guides,
-                and recreational divers can plan with confidence.
+              <p className="mt-3 text-base sm:text-lg text-navy-200 max-w-xl">
+                72-hour diveability forecasts for dive sites in
+                Negros Oriental. Risk scoring to help operators, guides,
+                and recreational divers plan with confidence.
               </p>
               <div className="mt-6 flex flex-wrap gap-3">
                 <Link
                   to="/about"
-                  className="btn-primary bg-white text-brand-800 hover:bg-brand-50"
+                  className="btn-primary bg-white text-navy-800 hover:bg-navy-50"
                 >
                   How it works
                   <IconArrowRight className="w-4 h-4" />
@@ -151,7 +136,7 @@ const Home = ({ onSiteSelect }) => {
             </div>
           </div>
           {generatedAt && (
-            <div className="mt-6 text-xs text-brand-200">
+            <div className="mt-6 text-xs text-navy-300">
               Last updated {new Date(generatedAt).toLocaleString()} ·{' '}
               {sites.length} active sites
             </div>
@@ -200,7 +185,7 @@ const Home = ({ onSiteSelect }) => {
           </div>
         ) : sites.length === 0 ? (
           <div className="card p-10 text-center text-slate-500">
-            No sites yet — add some via <Link to="/admin" className="text-brand-700 underline">Admin</Link>.
+            No sites yet — add some via <Link to="/admin" className="text-navy-700 underline">Admin</Link>.
           </div>
         ) : (
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -218,8 +203,8 @@ const Home = ({ onSiteSelect }) => {
 
       {/* Disclaimer */}
       <section className="container-page mt-10">
-        <div className="card p-5 flex items-start gap-4 bg-amber-50 border-amber-200/70">
-          <div className="p-2 rounded-lg bg-amber-100 text-amber-700 shrink-0">
+        <div className="card p-5 flex items-start gap-4 bg-amber-50 border-amber-200">
+          <div className="p-2 rounded-md bg-amber-100 text-amber-700 shrink-0">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"

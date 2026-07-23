@@ -77,10 +77,10 @@ const SiteDetail = () => {
 
       {/* Hero */}
       <div className="card overflow-hidden">
-        <div className="bg-gradient-to-br from-brand-700 via-brand-800 to-brand-950 text-white p-6 sm:p-8">
+        <div className="bg-navy-800 text-white p-6 sm:p-8">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/10 border border-white/20 text-xs font-medium mb-3">
+              <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-md bg-white/10 border border-white/20 text-xs font-medium mb-3">
                 <IconWaves className="w-3.5 h-3.5" />
                 {site.exposure_level || 'Unknown exposure'}
               </div>
@@ -88,18 +88,18 @@ const SiteDetail = () => {
                 {site.name}
               </h1>
               {site.description && (
-                <p className="mt-2 text-brand-100 max-w-xl text-sm sm:text-base">
+                <p className="mt-2 text-navy-200 max-w-xl text-sm sm:text-base">
                   {site.description}
                 </p>
               )}
-              <div className="mt-4 flex items-center gap-2 text-sm text-brand-100">
+              <div className="mt-4 flex items-center gap-2 text-sm text-navy-200">
                 <IconMapPin className="w-4 h-4" />
                 {site.latitude.toFixed(4)}, {site.longitude.toFixed(4)}
               </div>
             </div>
             {next && (
-              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-xl p-4 min-w-[180px]">
-                <div className="text-xs uppercase tracking-wider text-brand-100 font-medium mb-2">
+              <div className="bg-white/10 backdrop-blur border border-white/20 rounded-lg p-4 min-w-[180px]">
+                <div className="text-xs uppercase tracking-wider text-navy-200 font-medium mb-2">
                   Next forecast
                 </div>
                 <RiskBadge
@@ -107,7 +107,7 @@ const SiteDetail = () => {
                   probability={next.no_go_probability}
                   size="lg"
                 />
-                <div className="mt-3 flex items-center gap-1.5 text-xs text-brand-100">
+                <div className="mt-3 flex items-center gap-1.5 text-xs text-navy-200">
                   <IconClock className="w-3.5 h-3.5" />
                   {new Date(next.forecast_time).toLocaleString(undefined, {
                     weekday: 'short',
@@ -206,7 +206,7 @@ const SiteDetail = () => {
 
       {/* Site info */}
       <section className="card p-5 sm:p-6 mt-6 flex items-start gap-4">
-        <div className="p-2 rounded-lg bg-brand-50 text-brand-700 shrink-0">
+        <div className="p-2 rounded-md bg-navy-50 text-navy-700 shrink-0">
           <IconShield className="w-5 h-5" />
         </div>
         <div className="text-sm text-slate-700 leading-relaxed">

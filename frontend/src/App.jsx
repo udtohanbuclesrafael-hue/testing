@@ -32,7 +32,7 @@ const App = () => {
       />
 
       {/* Mobile-only top bar with hamburger. z above leaflet. */}
-      <header className="md:hidden sticky top-0 z-[1000] bg-white/90 backdrop-blur border-b border-slate-200/70">
+      <header className="md:hidden sticky top-0 z-[1000] bg-white backdrop-blur border-b border-slate-200">
         <div className="flex items-center justify-between h-14 px-4">
           <button
             type="button"
