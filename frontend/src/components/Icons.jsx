@@ -17,7 +17,7 @@ const Svg = ({ children, className = 'w-5 h-5', viewBox = '0 0 24 24' }) => (
 
 export const IconLogo = ({ className = 'w-8 h-8' }) => (
   <svg viewBox="0 0 100 100" className={className} xmlns="http://www.w3.org/2000/svg">
-    <rect width="100" height="100" rx="22" fill="#0369a1" />
+    <rect width="100" height="100" rx="22" fill="#102a43" />
     <path
       d="M10 58 Q25 42 40 58 T70 58 T100 58"
       stroke="#fff"
@@ -27,7 +27,7 @@ export const IconLogo = ({ className = 'w-8 h-8' }) => (
     />
     <path
       d="M10 74 Q25 58 40 74 T70 74 T100 74"
-      stroke="#7dd3fc"
+      stroke="#9fb3c8"
       strokeWidth="7"
       fill="none"
       strokeLinecap="round"

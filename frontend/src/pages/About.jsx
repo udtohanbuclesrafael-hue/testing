@@ -33,7 +33,7 @@ const RiskRow = ({ risk, Icon, range, description, colorClasses }) => (
 
 const FeatureCard = ({ Icon, title, description }) => (
   <div className="card p-5 card-hover">
-    <div className="p-2 inline-flex rounded-lg bg-brand-50 text-brand-700 mb-3">
+    <div className="p-2 inline-flex rounded-lg bg-navy-50 text-navy-700 mb-3">
       <Icon className="w-5 h-5" />
     </div>
     <h3 className="font-semibold text-slate-900">{title}</h3>
@@ -45,7 +45,7 @@ const About = () => (
   <div className="container-page py-10 max-w-4xl">
     {/* Header */}
     <div className="mb-10">
-      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-50 text-brand-700 text-xs font-medium mb-4">
+      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-navy-50 text-navy-700 text-xs font-medium mb-4">
         <IconWaves className="w-3.5 h-3.5" />
         About SeaSID
       </div>
@@ -141,7 +141,7 @@ const About = () => (
           href="https://open-meteo.com"
           target="_blank"
           rel="noreferrer"
-          className="text-brand-700 underline"
+          className="text-navy-700 underline"
         >
           Open-Meteo
         </a>
@@ -158,8 +158,8 @@ const About = () => (
 
     {/* Safety */}
     <section>
-      <div className="card p-6 bg-brand-50 border-brand-200/60 flex items-start gap-4">
-        <div className="p-2.5 rounded-lg bg-white text-brand-700 ring-1 ring-brand-200 shrink-0">
+      <div className="card p-6 bg-navy-50 border-navy-200 flex items-start gap-4">
+        <div className="p-2.5 rounded-lg bg-white text-navy-700 ring-1 ring-navy-200 shrink-0">
           <IconShield className="w-6 h-6" />
         </div>
         <div>

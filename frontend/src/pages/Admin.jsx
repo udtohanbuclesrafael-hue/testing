@@ -93,7 +93,7 @@ const ActionCard = ({
   return (
     <div
       className={`card transition-all ${
-        isLoading ? 'ring-2 ring-brand-300 border-brand-200' : ''
+        isLoading ? 'ring-2 ring-navy-300 border-navy-200' : ''
       }`}
     >
       <div className="p-5 flex items-start justify-between gap-4">
@@ -101,7 +101,7 @@ const ActionCard = ({
           <div className="flex items-center gap-3">
             <div
               className={`p-2 rounded-lg ${
-                isLoading ? 'bg-brand-100 text-brand-700' : 'bg-slate-100 text-slate-700'
+                isLoading ? 'bg-navy-100 text-navy-700' : 'bg-slate-100 text-slate-700'
               }`}
             >
               <Icon className="w-5 h-5" />
@@ -131,7 +131,7 @@ const ActionCard = ({
         </button>
       </div>
       {isLoading && (
-        <div className="px-5 pb-4 -mt-1 text-sm text-brand-700">
+        <div className="px-5 pb-4 -mt-1 text-sm text-navy-700">
           Talking to backend… this can take 10–60 seconds.
         </div>
       )}
@@ -240,7 +240,7 @@ const Admin = () => {
           <p className="text-sm text-slate-500 mt-1">
             Trigger model training, weather ingest, and prediction scoring.
             Results appear on the{' '}
-            <a href="/" className="text-brand-700 underline">
+            <a href="/" className="text-navy-700 underline">
               Home
             </a>{' '}
             page once predictions exist.

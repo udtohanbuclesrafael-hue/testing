@@ -17,16 +17,16 @@ const navItems = [
 
 const linkClass = ({ isActive }) =>
   [
-    'group flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
+    'group flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors',
     isActive
-      ? 'bg-brand-50 text-brand-800'
+      ? 'bg-navy-50 text-navy-800'
       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100',
   ].join(' ');
 
 const SidebarContent = ({ onNavigate }) => (
   <div className="h-full flex flex-col">
     {/* Brand */}
-    <div className="px-5 py-6 border-b border-slate-200/70">
+    <div className="px-5 py-6 border-b border-slate-200">
       <NavLink to="/" onClick={onNavigate} className="flex items-center gap-3">
         <IconLogo className="w-10 h-10 shrink-0" />
         <div className="leading-tight">
@@ -62,8 +62,8 @@ const SidebarContent = ({ onNavigate }) => (
                 {({ isActive }) => (
                   <>
                     <span
-                      className={`w-1 self-stretch rounded-full ${
-                        isActive ? 'bg-brand-600' : 'bg-transparent'
+                      className={`w-1 self-stretch rounded-sm ${
+                        isActive ? 'bg-navy-600' : 'bg-transparent'
                       }`}
                     />
                     <Icon className="w-4 h-4 shrink-0" />
@@ -78,9 +78,9 @@ const SidebarContent = ({ onNavigate }) => (
     </nav>
 
     {/* Footer */}
-    <div className="px-5 py-4 border-t border-slate-200/70 bg-slate-50/60">
+    <div className="px-5 py-4 border-t border-slate-200 bg-slate-50">
       <div className="flex items-start gap-2.5">
-        <div className="p-1.5 rounded-md bg-brand-50 text-brand-700 shrink-0 mt-0.5">
+        <div className="p-1.5 rounded-md bg-navy-50 text-navy-700 shrink-0 mt-0.5">
           <IconShield className="w-3.5 h-3.5" />
         </div>
         <p className="text-xs text-slate-600 leading-snug">
@@ -102,7 +102,7 @@ const SidebarContent = ({ onNavigate }) => (
 const Sidebar = ({ mobileOpen, onMobileClose }) => (
   <>
     {/* Desktop: always visible */}
-    <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:left-0 bg-white border-r border-slate-200/70 z-40">
+    <aside className="hidden md:flex md:flex-col md:w-64 md:fixed md:inset-y-0 md:left-0 bg-white border-r border-slate-200 z-40">
       <SidebarContent />
     </aside>
 
