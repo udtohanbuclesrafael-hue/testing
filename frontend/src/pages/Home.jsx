@@ -205,20 +205,7 @@ const Home = ({ onSiteSelect }) => {
       <section className="container-page mt-10">
         <div className="card p-5 flex items-start gap-4 bg-amber-50 border-amber-200">
           <div className="p-2 rounded-md bg-amber-100 text-amber-700 shrink-0">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="w-5 h-5"
-            >
-              <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z" />
-              <path d="M12 9v4" />
-              <path d="M12 17h.01" />
-            </svg>
+            <IconAlert className="w-5 h-5" />
           </div>
           <div className="text-sm text-slate-700 leading-relaxed">
             <strong className="text-slate-900">Safety first.</strong> SeaSID

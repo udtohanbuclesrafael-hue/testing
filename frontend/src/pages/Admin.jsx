@@ -3,6 +3,8 @@ import { useMutation, useQuery, useQueryClient } from 'react-query';
 import {
   getAdminStatus,
   getHealth,
+  getAlerts,
+  runAlerts,
   getRegionalSummary,
   getSites,
   ingestWeather,
@@ -16,6 +18,7 @@ import {
   IconShield,
   IconCheck,
   IconAlert,
+  IconRefresh,
   riskColorClasses,
 } from '../components/Icons';
 
@@ -36,26 +39,7 @@ const formatElapsed = (seconds) => {
 };
 
 const Spinner = () => (
-  <svg
-    className="animate-spin h-4 w-4 text-white"
-    xmlns="http://www.w3.org/2000/svg"
-    fill="none"
-    viewBox="0 0 24 24"
-  >
-    <circle
-      className="opacity-25"
-      cx="12"
-      cy="12"
-      r="10"
-      stroke="currentColor"
-      strokeWidth="4"
-    />
-    <path
-      className="opacity-75"
-      fill="currentColor"
-      d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
-    />
-  </svg>
+  <IconRefresh className="animate-spin h-4 w-4 text-white" />
 );
 
 const useElapsed = (running) => {
@@ -391,6 +375,9 @@ const Admin = () => {
       )}
 
       {/* Action cards */}
+      {/* Alerts panel */}
+      <AlertsCard />
+
       <div className="grid gap-4 mb-8">
         <ActionCard
           step={1}
@@ -535,3 +522,80 @@ const Admin = () => {
 };
 
 export default Admin;
+
+const AlertsCard = () => {
+  const alertsQuery = useQuery('alerts', () => getAlerts({ horizon_hours: 24 }), {
+    refetchInterval: 15000,
+  });
+  const runMut = useMutation(runAlerts, {
+    onSuccess: () => alertsQuery.refetch(),
+  });
+
+  const data = alertsQuery.data?.data;
+  const alerts = data?.alerts ?? [];
+  const bySeverity = (alerts || []).reduce((acc, a) => {
+    acc[a.severity] = (acc[a.severity] || 0) + 1;
+    return acc;
+  }, {});
+  const severityColor = (sev) => {
+    if (sev === 'no-go') return 'bg-no-go-red text-white';
+    if (sev === 'caution') return 'bg-caution-yellow text-white';
+    return 'bg-slate-200 text-slate-700';
+  };
+
+  return (
+    <section className="card mb-6">
+      <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Threshold Alerts</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Operational flags from weather forecasts over the next 24 hours.
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="pill bg-no-go-red text-white">
+            {bySeverity['no-go'] ?? 0} no-go
+          </span>
+          <span className="pill bg-caution-yellow text-white">
+            {bySeverity['caution'] ?? 0} caution
+          </span>
+          <button
+            type="button"
+            onClick={() => runMut.mutate()}
+            disabled={runMut.isLoading}
+            className="btn-secondary text-xs"
+          >
+            {runMut.isLoading ? 'Refreshing...' : 'Refresh'}
+          </button>
+        </div>
+      </div>
+      {alertsQuery.isLoading ? (
+        <div className="p-6 text-sm text-slate-500">Loading alerts...</div>
+      ) : alerts.length === 0 ? (
+        <div className="p-6 text-sm text-slate-500">
+          No threshold breaches in the next 24 hours.
+        </div>
+      ) : (
+        <div className="divide-y divide-slate-200 max-h-96 overflow-y-auto">
+          {alerts.slice(0, 40).map((a, idx) => (
+            <div key={idx} className="px-5 py-3 flex items-center gap-3 text-sm">
+              <span className={`pill ${severityColor(a.severity)}`}>{a.severity}</span>
+              <span className="font-medium text-slate-900">{a.site_name}</span>
+              <span className="text-slate-600">
+                {a.metric} = <span className="font-mono">{a.value}</span> (threshold {a.threshold})
+              </span>
+              <span className="ml-auto text-xs text-slate-500">
+                {formatTime(a.forecast_time)}
+              </span>
+            </div>
+          ))}
+          {alerts.length > 40 && (
+            <div className="px-5 py-3 text-xs text-slate-500">
+              Showing first 40 of {alerts.length} alerts.
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+  );
+};

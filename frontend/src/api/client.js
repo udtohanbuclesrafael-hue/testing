@@ -28,3 +28,5 @@ export const runPredictions = (siteId) =>
   api.post('/predict/run', siteId != null ? { site_id: siteId } : {});
 export const getAdminStatus = () => api.get('/status');
 export const getHealth = () => rootApi.get('/health');
+export const getAlerts = (params) => api.get('/alerts', { params });
+export const runAlerts = () => api.post('/alerts/run');

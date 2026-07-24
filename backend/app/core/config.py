@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     
     # ML Model
     MODEL_PATH: str = "app/ml/model.pkl"
+    # Selects the active model backend: "rf" (default) or "lstm".
+    MODEL_BACKEND: str = "rf"
     
     # Open-Meteo API
     OPEN_METEO_WEATHER_URL: str = "https://api.open-meteo.com/v1/forecast"

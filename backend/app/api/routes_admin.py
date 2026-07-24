@@ -12,6 +12,10 @@ from ..schemas.site import FeedbackCreate
 from ..services.weather_service import fetch_weather_data
 from ..services.prediction_service import run_predictions
 from ..ml.train import generate_synthetic_data, train_model
+from ..services.alerts_service import (
+    DEFAULT_THRESHOLDS,
+    evaluate_recent_forecasts,
+)
 
 router = APIRouter()
 
@@ -86,22 +90,24 @@ def submit_feedback(feedback: FeedbackCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/ml/train")
-def train_new_model():
+def train_new_model(backend: str | None = None):
     """Synchronously generate synthetic data and train the model.
 
     Returns metrics so the UI can confirm a real run happened.
     """
     started = datetime.utcnow()
     df = generate_synthetic_data()
-    model = train_model()
+    result = train_model(backend=backend or settings.MODEL_BACKEND)
     elapsed = (datetime.utcnow() - started).total_seconds()
 
     model_path = Path(settings.MODEL_PATH)
     return {
         "status": "Model training complete",
         "training_rows": int(len(df)),
-        "model_path": str(model_path),
-        "model_exists": model_path.exists(),
+        "backend": result["backend"],
+        "model_path": result["model_path"],
+        "model_exists": Path(result["model_path"]).exists(),
+        "metrics": result.get("metrics", {}),
         "elapsed_seconds": round(elapsed, 1),
         "completed_at": datetime.utcnow().isoformat() + "Z",
     }
@@ -146,3 +152,46 @@ def admin_status(db: Session = Depends(get_db)):
             if latest_feedback else None
         ),
     }
+@router.get("/alerts")
+def list_alerts(
+    site_id: int | None = None,
+    horizon_hours: int = 24,
+    db: Session = Depends(get_db),
+):
+    """Return threshold-based alerts for the next ``horizon_hours``."""
+    horizon_hours = max(1, min(int(horizon_hours), 72))
+    alerts = evaluate_recent_forecasts(
+        db,
+        site_id=site_id,
+        horizon_hours=horizon_hours,
+    )
+    return {
+        "count": len(alerts),
+        "thresholds": DEFAULT_THRESHOLDS,
+        "alerts": [a.to_dict() for a in alerts],
+        "generated_at": datetime.utcnow().isoformat() + "Z",
+    }
+
+
+@router.post("/alerts/run")
+def run_alerts(db: Session = Depends(get_db)):
+    """Trigger an alert evaluation pass and return the counts.
+
+    This endpoint is intentionally idempotent: alerts are computed on
+    demand from the current forecast rows rather than persisted, so the
+    UI can refresh without worrying about staleness.
+    """
+    alerts = evaluate_recent_forecasts(db)
+    severity_counts: dict[str, int] = {"info": 0, "caution": 0, "no-go": 0}
+    site_counts: dict[int, int] = {}
+    for a in alerts:
+        severity_counts[a.severity] = severity_counts.get(a.severity, 0) + 1
+        site_counts[a.site_id] = site_counts.get(a.site_id, 0) + 1
+    return {
+        "status": "Alerts evaluated",
+        "alerts_total": len(alerts),
+        "by_severity": severity_counts,
+        "by_site": site_counts,
+        "completed_at": datetime.utcnow().isoformat() + "Z",
+    }
+

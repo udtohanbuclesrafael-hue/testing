@@ -35,6 +35,9 @@ pip-delete-this-directory.txt
 .mypy_cache/
 .coverage
 htmlcov/
+*.db
+*.pkl
+synthetic_training_data.csv
 
 # Compressed files
 *.zip

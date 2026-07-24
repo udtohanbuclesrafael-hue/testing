@@ -20,7 +20,7 @@ with explanatory reasons.
 - 72-hour hourly risk forecasts with `no_go_probability` and `risk_class`.
 - Regional summary endpoint for map / dashboard views.
 - Open-Meteo weather + marine ingest, with a pluggable ML model
-  (RandomForestClassifier baseline).
+   (`RandomForestClassifier` baseline; LSTM backend available via `MODEL_BACKEND=lstm`).
 - Feedback endpoint for divers / operators to record actual conditions.
 - React + Leaflet map UI and a 72-hour recharts forecast chart.
 
@@ -30,6 +30,7 @@ with explanatory reasons.
 | -------- | ----------------------------------------------------------- |
 | Backend  | FastAPI 0.115, SQLAlchemy 2, Pydantic v2, SQLite (default)  |
 | ML       | scikit-learn (RandomForest), pandas, numpy                  |
+|          | LSTM backend (24h sliding window, NumPy/SciPy implementation in `app/ml/lstm_backend.py`) |
 | Frontend | React 18, Vite 5, react-query, recharts, react-leaflet      |
 | Styling  | Tailwind CSS 3                                              |
 | Data     | Open-Meteo (`/v1/forecast` + marine-api)                   |
@@ -113,17 +114,26 @@ Interactive docs at `http://localhost:8000/docs`.
 
 ## ML pipeline
 
-The current model is a `RandomForestClassifier` trained on synthetic weather
-data (`backend/app/ml/train.py`). To bootstrap from scratch:
+SeaSID ships with two model backends sharing the same prediction API:
+
+- `rf` (default): `RandomForestClassifier` trained on single-row engineered
+  features (`backend/app/ml/train.py`).
+- `lstm`: a single-layer LSTM with sigmoid head (`backend/app/ml/lstm_backend.py`).
+  Trained on 24-hour sliding windows per site with z-score normalization; an
+  LSTM backend fits the time-series nature of the 72-hour forecast window.
+
+Select the backend via the `MODEL_BACKEND` environment variable or by passing
+`?backend=lstm` (or `?backend=rf`) to `/api/v1/ml/train`. To bootstrap from scratch:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/ml/train       # generates data + trains
-curl -X POST http://localhost:8000/api/v1/ingest/weather # pulls Open-Meteo
-curl -X POST http://localhost:8000/api/v1/predict/run    # scores the window
+curl -X POST 'http://localhost:8000/api/v1/ml/train?backend=lstm'   # generates data + trains LSTM
+curl -X POST http://localhost:8000/api/v1/ingest/weather             # pulls Open-Meteo
+curl -X POST http://localhost:8000/api/v1/predict/run                # scores the window
 ```
 
 Predictions replace the previous 72-hour window on each run (idempotent). The
-artifacts (`app/ml/model.pkl`, `synthetic_training_data.csv`) are git-ignored.
+artifacts (`app/ml/model.pkl`, `app/ml/model.pkl_lstm_bundle.pkl`, and
+`synthetic_training_data.csv`) are git-ignored.
 
 ## Configuration
 
